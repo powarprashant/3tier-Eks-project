@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - backend
+      tolerations:
+      - key: "tier"
+        operator: "Equal"
+        value: "backend"
+        effect: "NoSchedule"
+      containers:
+      - name: backend
+        image: {{ .Values.backendImage }}
+        env:
+        - name: DB_HOST
+          value: {{ .Values.db.host | quote }}
+        - name: DB_PASSWORD
+          value: {{ .Values.db.password | quote }}
+        ports:
+        - containerPort: 8080

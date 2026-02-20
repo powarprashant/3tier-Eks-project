@@ -1,0 +1,6 @@
+frontendImage: "your-dockerhub-username/frontend:latest"
+backendImage: "your-dockerhub-username/backend:latest"
+
+db:
+  host: ""
+  password: ""

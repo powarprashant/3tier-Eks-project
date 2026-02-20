@@ -1,0 +1,49 @@
+pipeline {
+  agent any
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        git url: 'https://github.com/powarprashant/aws-3tier-eks-project.git'
+      }
+    }
+
+    stage('Build Images') {
+      steps {
+        sh 'docker build -t your-dockerhub-username/frontend:latest app/frontend'
+        sh 'docker build -t your-dockerhub-username/backend:latest app/backend'
+        sh 'docker push your-dockerhub-username/frontend:latest'
+        sh 'docker push your-dockerhub-username/backend:latest'
+      }
+    }
+
+    stage('Trivy Scan') {
+      steps {
+        sh 'trivy image your-dockerhub-username/frontend:latest'
+        sh 'trivy image your-dockerhub-username/backend:latest'
+      }
+    }
+
+    stage('Terraform Apply') {
+      steps {
+        sh 'terraform -chdir=infra init'
+        sh 'terraform -chdir=infra apply -auto-approve'
+      }
+    }
+
+    stage('Deploy to EKS Primary') {
+      steps {
+        sh 'aws eks update-kubeconfig --name three-tier-use1 --region us-east-1'
+        sh 'helm upgrade --install three-tier helm/three-tier-app --set db.host=$(terraform -chdir=infra output -raw primary_writer)'
+      }
+    }
+
+    stage('Deploy to EKS Secondary') {
+      steps {
+        sh 'aws eks update-kubeconfig --name three-tier-aps1 --region ap-south-1'
+        sh 'helm upgrade --install three-tier helm/three-tier-app --set db.host=$(terraform -chdir=infra output -raw secondary_reader)'
+      }
+    }
+  }
+}
