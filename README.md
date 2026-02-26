@@ -1,11 +1,16 @@
-# AWS Multi-Region 3-Tier Application on EKS
+# 🚀 3-Tier Application Deployment on AWS EKS (Multi-Region)
 
-This project deploys:
-- Frontend (React)
-- Backend (Node.js)
-- Database (Aurora Global MySQL)
-- Multi-region EKS (us-east-1 + ap-south-1)
-- ALB ingress
-- Terraform modules
-- Helm chart
-- Jenkins CI/CD
+This repository contains a production-grade, secure, highly available CI/CD + IaC setup to deploy a **Frontend + Backend + Database** application on **multi-region AWS EKS clusters** using:
+
+- Terraform (Infra Code)
+- Jenkins Pipeline (CI/CD)
+- Docker + DockerHub
+- Helm (App Deployment)
+- Trivy (Security Scanning)
+- EKS IRSA (IAM Roles for Service Accounts)
+- Multi-region architecture
+- Node Taints + Affinities
+
+---
+
+## 📁 Repository Structure

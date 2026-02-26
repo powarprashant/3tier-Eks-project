@@ -1,6 +1,52 @@
-frontendImage: "your-dockerhub-username/frontend:latest"
-backendImage: "your-dockerhub-username/backend:latest"
+
+#  IMAGE VALUES
+
+frontendImage: "prashantkpowar/frontend:latest"
+backendImage: "prashantkpowar/backend:latest"
+
+
+#  DATABASE VALUES (Updated by Jenkins automatically)
 
 db:
-  host: ""
-  password: ""
+  host: ""         # Terraform output (Jenkins sets this)
+  password: ""     # if needed
+
+
+#  FRONTEND DEPLOYMENT CONFIG
+
+frontend:
+  tolerations:
+    - key: "tier"
+      operator: "Equal"
+      value: "frontend"
+      effect: "NoSchedule"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: "role"
+            operator: "In"
+            values:
+              - frontend
+
+
+#  BACKEND DEPLOYMENT CONFIG
+
+backend:
+  tolerations:
+    - key: "tier"
+      operator: "Equal"
+      value: "backend"
+      effect: "NoSchedule"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: "role"
+            operator: "In"
+            values:
+              - backend
