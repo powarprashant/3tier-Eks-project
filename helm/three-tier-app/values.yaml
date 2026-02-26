@@ -1,20 +1,12 @@
-
-#  IMAGE VALUES
-
-frontendImage: "prashantkpowar/frontend:latest"
-backendImage: "prashantkpowar/backend:latest"
-
-
-#  DATABASE VALUES (Updated by Jenkins automatically)
-
-db:
-  host: ""         # Terraform output (Jenkins sets this)
-  password: ""     # if needed
-
-
-#  FRONTEND DEPLOYMENT CONFIG
+# ===========================================
+# IMAGE VALUES (Used by Jenkins + Helm)
+# ===========================================
 
 frontend:
+  image:
+    repository: "prashantkpowar/frontend"
+    tag: "latest"
+
   tolerations:
     - key: "tier"
       operator: "Equal"
@@ -25,16 +17,18 @@ frontend:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
-        - matchExpressions:
-          - key: "role"
-            operator: "In"
-            values:
-              - frontend
+          - matchExpressions:
+              - key: "role"
+                operator: "In"
+                values:
+                  - frontend
 
-
-#  BACKEND DEPLOYMENT CONFIG
 
 backend:
+  image:
+    repository: "prashantkpowar/backend"
+    tag: "latest"
+
   tolerations:
     - key: "tier"
       operator: "Equal"
@@ -45,8 +39,26 @@ backend:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
-        - matchExpressions:
-          - key: "role"
-            operator: "In"
-            values:
-              - backend
+          - matchExpressions:
+              - key: "role"
+                operator: "In"
+                values:
+                  - backend
+
+
+# ===========================================
+# DATABASE VALUES (Jenkins automatically sets db.host)
+# ===========================================
+
+db:
+  host: ""         # Provided by Terraform output
+  password: ""     # Only if your backend uses DB password
+
+
+# ===========================================
+# SERVICE CONFIG (Optional)
+# ===========================================
+
+service:
+  frontendPort: 80
+  backendPort: 8080

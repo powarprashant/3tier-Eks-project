@@ -1,49 +1,84 @@
 pipeline {
-  agent any
+    agent any
 
-  stages {
-
-    stage('Checkout') {
-      steps {
-        git url: 'https://github.com/powarprashant/aws-3tier-eks-project.git'
-      }
+    environment {
+        AWS_DEFAULT_REGION = "ap-south-1"
+        DOCKER_USER = "prashantkpowar"
     }
 
-    stage('Build Images') {
-      steps {
-        sh 'docker build -t your-dockerhub-username/frontend:latest app/frontend'
-        sh 'docker build -t your-dockerhub-username/backend:latest app/backend'
-        sh 'docker push your-dockerhub-username/frontend:latest'
-        sh 'docker push your-dockerhub-username/backend:latest'
-      }
-    }
+    stages {
 
-    stage('Trivy Scan') {
-      steps {
-        sh 'trivy image your-dockerhub-username/frontend:latest'
-        sh 'trivy image your-dockerhub-username/backend:latest'
-      }
-    }
+        stage('Checkout Code') {
+            steps {
+                git url: 'git@github.com:powarprashant/3tier-Eks-project.git', branch: 'main'
+            }
+        }
 
-    stage('Terraform Apply') {
-      steps {
-        sh 'terraform -chdir=infra init'
-        sh 'terraform -chdir=infra apply -auto-approve'
-      }
-    }
+        stage('Build & Push Docker Images') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                    echo "$PASS" | docker login -u "$USER" --password-stdin
 
-    stage('Deploy to EKS Primary') {
-      steps {
-        sh 'aws eks update-kubeconfig --name three-tier-use1 --region us-east-1'
-        sh 'helm upgrade --install three-tier helm/three-tier-app --set db.host=$(terraform -chdir=infra output -raw primary_writer)'
-      }
-    }
+                    docker build -t $DOCKER_USER/frontend:latest app/frontend
+                    docker build -t $DOCKER_USER/backend:latest app/backend
 
-    stage('Deploy to EKS Secondary') {
-      steps {
-        sh 'aws eks update-kubeconfig --name three-tier-aps1 --region ap-south-1'
-        sh 'helm upgrade --install three-tier helm/three-tier-app --set db.host=$(terraform -chdir=infra output -raw secondary_reader)'
-      }
+                    docker push $DOCKER_USER/frontend:latest
+                    docker push $DOCKER_USER/backend:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Security Scan with Trivy') {
+            steps {
+                sh '''
+                trivy image $DOCKER_USER/frontend:latest --exit-code 0
+                trivy image $DOCKER_USER/backend:latest --exit-code 0
+                '''
+            }
+        }
+
+        stage('Terraform Apply Infra') {
+            steps {
+                withAWS(credentials: 'aws-creds') {
+                    sh '''
+                    cd infra
+                    terraform init
+                    terraform apply -auto-approve
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Primary Cluster') {
+            steps {
+                withAWS(credentials: 'aws-creds') {
+                    sh '''
+                    aws eks update-kubeconfig --region us-east-1 --name three-tier-use1
+
+                    helm upgrade --install three-tier helm/three-tier-app \
+                      --set frontend.image.repository=$DOCKER_USER/frontend \
+                      --set backend.image.repository=$DOCKER_USER/backend \
+                      --set db.host=$(terraform -chdir=infra output -raw primary_writer)
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Secondary Cluster') {
+            steps {
+                withAWS(credentials: 'aws-creds') {
+                    sh '''
+                    aws eks update-kubeconfig --region ap-south-1 --name three-tier-aps1
+
+                    helm upgrade --install three-tier helm/three-tier-app \
+                      --set frontend.image.repository=$DOCKER_USER/frontend \
+                      --set backend.image.repository=$DOCKER_USER/backend \
+                      --set db.host=$(terraform -chdir=infra output -raw secondary_reader)
+                    '''
+                }
+            }
+        }
     }
-  }
 }

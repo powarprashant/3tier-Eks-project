@@ -16,18 +16,20 @@ spec:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: role
-                operator: In
-                values:
-                - frontend
+              - matchExpressions:
+                  - key: role
+                    operator: In
+                    values:
+                      - frontend
+
       tolerations:
-      - key: "tier"
-        operator: "Equal"
-        value: "frontend"
-        effect: "NoSchedule"
+        - key: "tier"
+          operator: "Equal"
+          value: "frontend"
+          effect: "NoSchedule"
+
       containers:
-      - name: frontend
-        image: {{ .Values.frontendImage }}
-        ports:
-        - containerPort: 80
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          ports:
+            - containerPort: 80
