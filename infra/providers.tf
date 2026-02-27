@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.40.0, < 6.0.0"
-    }
-  }
-}
-
 variable "primary_region" {
   default = "us-east-1"
 }
@@ -25,6 +16,7 @@ provider "aws" {
   region = var.secondary_region
 }
 
+# Default provider (required for modules that don't specify alias)
 provider "aws" {
   region = var.primary_region
 }
