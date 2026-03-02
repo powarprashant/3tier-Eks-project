@@ -10,7 +10,9 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git url: 'git@github.com:powarprashant/3tier-Eks-project.git', branch: 'main'
+                git branch: 'main',
+                    credentialsId: 'github-ssh',
+                    url: 'git@github.com:powarprashant/3tier-Eks-project.git'
             }
         }
 
