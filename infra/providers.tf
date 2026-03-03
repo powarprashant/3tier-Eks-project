@@ -16,7 +16,6 @@ provider "aws" {
   region = var.secondary_region
 }
 
-# Default provider (required for modules that don't specify alias)
 provider "aws" {
   region = var.primary_region
 }
