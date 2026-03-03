@@ -19,7 +19,7 @@ module "eks" {
     aws = aws.primary
   }
 
-  cluster_name    = "three-tier-use1"
+  cluster_name    = "three-tier-primary"
   vpc_id          = module.vpc.vpc_id
   private_subnets = module.vpc.private_subnets
 }
