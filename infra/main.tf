@@ -18,8 +18,7 @@ module "aurora" {
   source = "./modules/aurora"
 
   providers = {
-    aws.primary   = aws.primary
-    aws.secondary = aws.secondary
+    aws = aws.primary
   }
 
   db_password = var.db_password
