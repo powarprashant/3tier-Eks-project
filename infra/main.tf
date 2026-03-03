@@ -18,7 +18,7 @@ module "aurora" {
   source = "./modules/aurora"
 
   providers = {
-    aws = aws.primary
+    aws = aws.primary   # Aurora should use the PRIMARY region
   }
 
   db_password = var.db_password
