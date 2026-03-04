@@ -43,9 +43,21 @@ pipeline {
                 cd infra
                 rm -rf .terraform
                 rm -f .terraform.lock.hcl
+
                 terraform init -upgrade
                 terraform apply -auto-approve -var="db_password=${DB_PASSWORD}"
                 '''
+            }
+        }
+
+        stage('Get Aurora Endpoint') {
+            steps {
+                script {
+                    env.DB_ENDPOINT = sh(
+                        script: "cd infra && terraform output -raw aurora_endpoint",
+                        returnStdout: true
+                    ).trim()
+                }
             }
         }
 
@@ -57,7 +69,9 @@ pipeline {
                 helm upgrade --install three-tier-app \
                 ./helm/three-tier-app \
                 --namespace three-tier \
-                --create-namespace
+                --create-namespace \
+                --set db.host=$DB_ENDPOINT \
+                --set db.password=$DB_PASSWORD
                 '''
             }
         }

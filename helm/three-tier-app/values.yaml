@@ -47,16 +47,19 @@ backend:
 
 
 # ===========================================
-# DATABASE VALUES (Jenkins automatically sets db.host)
+# DATABASE VALUES
 # ===========================================
 
 db:
-  host: ""         # Provided by Terraform output
-  password: ""     # Only if your backend uses DB password
+  host: ""           # Jenkins / Terraform will inject Aurora endpoint
+  port: "3306"
+  user: "dbadmin"
+  name: "appdb"
+  password: ""       # Jenkins credential or secret
 
 
 # ===========================================
-# SERVICE CONFIG (Optional)
+# SERVICE CONFIG
 # ===========================================
 
 service:
