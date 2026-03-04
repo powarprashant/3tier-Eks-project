@@ -17,13 +17,13 @@ pipeline {
         stage('Build & Push Docker Images') {
             steps {
                 sh '''
-                docker build -t powarprashant/frontend:latest ./app/frontend
-                docker build -t powarprashant/backend:latest ./app/backend
+                docker build -t prashantkpowar/frontend:latest ./app/frontend
+                docker build -t prashantkpowar/backend:latest ./app/backend
 
                 docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
 
-                docker push powarprashant/frontend:latest
-                docker push powarprashant/backend:latest
+                docker push prashantkpowar/frontend:latest
+                docker push prashantkpowar/backend:latest
                 '''
             }
         }
@@ -31,8 +31,8 @@ pipeline {
         stage('Security Scan with Trivy') {
             steps {
                 sh '''
-                trivy image powarprashant/frontend:latest
-                trivy image powarprashant/backend:latest
+                trivy image prashantkpowar/frontend:latest
+                trivy image prashantkpowar/backend:latest
                 '''
             }
         }
