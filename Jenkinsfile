@@ -41,6 +41,8 @@ pipeline {
             steps {
                 sh '''
                 cd infra
+                rm -rf .terraform
+                rm -f .terraform.lock.hcl
                 terraform init -upgrade
                 terraform apply -auto-approve -var="db_password=${DB_PASSWORD}"
                 '''
