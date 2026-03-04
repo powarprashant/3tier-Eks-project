@@ -15,9 +15,9 @@ module "eks" {
 
     frontend = {
       instance_types = ["t3.large"]
-      desired_size   = 2
-      min_size       = 2
-      max_size       = 4
+      desired_size   = 1
+      min_size       = 1
+      max_size       = 2
 
       labels = {
         role = "frontend"
@@ -31,10 +31,10 @@ module "eks" {
     }
 
     backend = {
-      instance_types = ["t3.large"]
-      desired_size   = 2
-      min_size       = 2
-      max_size       = 4
+      instance_types = ["t3.medium"]
+      desired_size   = 1
+      min_size       = 1
+      max_size       = 2
 
       labels = {
         role = "backend"
