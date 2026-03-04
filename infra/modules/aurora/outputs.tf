@@ -1,7 +1,3 @@
-output "db_endpoint" {
+output "aurora_endpoint" {
   value = aws_rds_cluster.aurora.endpoint
-}
-
-output "db_reader_endpoint" {
-  value = aws_rds_cluster.aurora.reader_endpoint
 }

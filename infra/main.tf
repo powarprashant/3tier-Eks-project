@@ -20,7 +20,9 @@ module "eks" {
 module "aurora" {
   source = "./modules/aurora"
 
-  db_password     = var.db_password
-  vpc_id          = module.vpc.vpc_id
-  private_subnets = module.vpc.private_subnets
+  providers = {
+    aws = aws.use1
+  }
+
+  db_password = var.db_password
 }
