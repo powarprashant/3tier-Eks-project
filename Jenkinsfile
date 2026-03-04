@@ -2,86 +2,61 @@ pipeline {
     agent any
 
     environment {
-        AWS_DEFAULT_REGION = "ap-south-1"
-        DOCKER_USER = "prashantkpowar"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        DB_PASSWORD = credentials('db-password')
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout SCM') {
             steps {
-                git branch: 'main',
-                    credentialsId: 'github-ssh',
-                    url: 'git@github.com:powarprashant/3tier-Eks-project.git'
+                checkout scm
             }
         }
 
         stage('Build & Push Docker Images') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                sh '''
+                docker build -t powarprashant/frontend:latest ./app/frontend
+                docker build -t powarprashant/backend:latest ./app/backend
 
-                        docker build -t $DOCKER_USER/frontend:latest app/frontend
-                        docker build -t $DOCKER_USER/backend:latest app/backend
+                docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
 
-                        docker push $DOCKER_USER/frontend:latest
-                        docker push $DOCKER_USER/backend:latest
-                    '''
-                }
+                docker push powarprashant/frontend:latest
+                docker push powarprashant/backend:latest
+                '''
             }
         }
 
         stage('Security Scan with Trivy') {
             steps {
                 sh '''
-                    trivy image $DOCKER_USER/frontend:latest --exit-code 0
-                    trivy image $DOCKER_USER/backend:latest --exit-code 0
+                trivy image powarprashant/frontend:latest
+                trivy image powarprashant/backend:latest
                 '''
             }
         }
 
         stage('Terraform Apply Infra') {
             steps {
-                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                    withCredentials([string(credentialsId: 'db-password', variable: 'DB_PASSWORD')]) {
-                        sh '''
-                            cd infra
-                            terraform init
-                            terraform apply -auto-approve -var="db_password=${DB_PASSWORD}"
-                        '''
-                    }
-                }
+                sh '''
+                cd infra
+                terraform init
+                terraform apply -auto-approve -var="db_password=${DB_PASSWORD}"
+                '''
             }
         }
 
-        stage('Deploy to Primary Cluster') {
+        stage('Deploy with Helm') {
             steps {
-                withAWS(credentials: 'aws-creds', region: 'us-east-1') {
-                    sh '''
-                        aws eks update-kubeconfig --region us-east-1 --name three-tier-use1
+                sh '''
+                aws eks update-kubeconfig --region us-east-1 --name three-tier-eks
 
-                        helm upgrade --install three-tier helm/three-tier-app \
-                            --set frontend.image.repository=$DOCKER_USER/frontend \
-                            --set backend.image.repository=$DOCKER_USER/backend \
-                            --set db.host=$(terraform -chdir=infra output -raw primary_writer)
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy to Secondary Cluster') {
-            steps {
-                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                    sh '''
-                        aws eks update-kubeconfig --region ap-south-1 --name three-tier-aps1
-
-                        helm upgrade --install three-tier helm/three-tier-app \
-                            --set frontend.image.repository=$DOCKER_USER/frontend \
-                            --set backend.image.repository=$DOCKER_USER/backend \
-                            --set db.host=$(terraform -chdir=infra output -raw secondary_reader)
-                    '''
-                }
+                helm upgrade --install three-tier-app \
+                ./helm/three-tier-app \
+                --namespace three-tier \
+                --create-namespace
+                '''
             }
         }
     }

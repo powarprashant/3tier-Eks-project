@@ -7,27 +7,14 @@ resource "aws_secretsmanager_secret_version" "db_password" {
   secret_string = var.db_password
 }
 
-resource "aws_rds_global_cluster" "global" {
-  global_cluster_identifier = "three-tier-global-db"
-  engine                    = "aurora-mysql"
-}
+resource "aws_rds_cluster" "aurora" {
+  cluster_identifier = "three-tier-db"
 
-# PRIMARY CLUSTER
-resource "aws_rds_cluster" "primary" {
-  provider = aws.primary
+  engine         = "aurora-mysql"
+  engine_version = "5.7.mysql_aurora.2.11.3"
 
-  cluster_identifier        = "three-tier-primary-db"
-  engine                    = "aurora-mysql"
-  master_username           = "dbadmin"
-  master_password           = var.db_password
-  global_cluster_identifier = aws_rds_global_cluster.global.id
-}
+  master_username = "dbadmin"
+  master_password = var.db_password
 
-# SECONDARY CLUSTER
-resource "aws_rds_cluster" "secondary" {
-  provider = aws.secondary
-
-  cluster_identifier        = "three-tier-secondary-db"
-  engine                    = "aurora-mysql"
-  global_cluster_identifier = aws_rds_global_cluster.global.id
+  skip_final_snapshot = true
 }
