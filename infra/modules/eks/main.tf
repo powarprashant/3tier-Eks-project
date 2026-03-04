@@ -14,7 +14,7 @@ module "eks" {
   eks_managed_node_groups = {
 
     frontend = {
-      instance_types = ["t3.large"]
+      instance_types = ["t3.medium"]
       desired_size   = 1
       min_size       = 1
       max_size       = 2
