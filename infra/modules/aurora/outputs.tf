@@ -1,7 +1,7 @@
-output "primary_writer" {
-  value = aws_rds_cluster.primary.endpoint
+output "db_endpoint" {
+  value = aws_rds_cluster.aurora.endpoint
 }
 
-output "secondary_reader" {
-  value = aws_rds_cluster.secondary.reader_endpoint
+output "db_reader_endpoint" {
+  value = aws_rds_cluster.aurora.reader_endpoint
 }
