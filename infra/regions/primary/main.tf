@@ -2,7 +2,7 @@ module "vpc" {
   source = "../../modules/vpc"
 
   providers = {
-    aws = aws.primary
+    aws = aws
   }
 
   name            = "primary-vpc"
@@ -16,10 +16,10 @@ module "eks" {
   source = "../../modules/eks"
 
   providers = {
-    aws = aws.primary
+    aws = aws
   }
 
-  cluster_name    = "three-tier-primary"
+  cluster_name    = "three-tier-use1"
   vpc_id          = module.vpc.vpc_id
   private_subnets = module.vpc.private_subnets
 }
