@@ -3,12 +3,8 @@ terraform {
 
   required_providers {
     aws = {
-      source = "hashicorp/aws"
-      version = "~> 6.34"
-      configuration_aliases = [
-        aws.primary,
-        aws.secondary
-      ]
+      source  = "hashicorp/aws"
+      version = "~> 5.40"
     }
 
     tls = {
