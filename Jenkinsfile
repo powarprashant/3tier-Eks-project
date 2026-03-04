@@ -41,7 +41,7 @@ pipeline {
             steps {
                 sh '''
                 cd infra
-                terraform init
+                terraform init -upgrade
                 terraform apply -auto-approve -var="db_password=${DB_PASSWORD}"
                 '''
             }
